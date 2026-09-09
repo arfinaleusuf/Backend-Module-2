@@ -116,15 +116,16 @@ def create_issue(user: user_dependency, db : db_dependency, issue_request: Issue
         raise HTTPException(status_code=400, detail='No Copies Available')
 
     loan_days = 14
-    issue_date = datetime.now
+    issue_date = datetime.now()
 
     issue_model = IssueRecords(
         book_id = issue_request.book_id,
         user_id = issue_request.user_id,
         issue_date = issue_date,
-        due_date = issue_date + timedelta(days= loan_days)
+        due_date = issue_date + timedelta(days= loan_days),
         status = 'issued'
     )
+
     book.available_copies -= 1
 
     reservation = db.query(Reservation).filter(Reservation.book_id == issue_request.book_id, Reservation.user_id == issue_request.user_id, Reservation.status == 'pending')
@@ -148,7 +149,7 @@ def return_book(user: user_dependency, db : db_dependency, issue_id: int):
         raise HTTPException(status_code=404, detail='Issue record not found')
     
     
-    return_date = datetime.now
+    return_date = datetime.now()
     fine = calculate_fine(issue.due_date, return_date)
 
     issue.return_date = return_date
@@ -163,3 +164,19 @@ def return_book(user: user_dependency, db : db_dependency, issue_id: int):
     db.commit()
 
     return JSONResponse(status_code=201, content={'message':'Book Returned Successfully', 'fine amount': fine})
+
+@router.put('/admin/fine/pay/{issue_id}')
+def fine_paid(user: user_dependency, db : db_dependency, issue_id: int):
+
+    if user is None or user.get('role') != "librarian":
+        raise HTTPException(status_code=401, detail="Failed Authentication")
+
+    issue = db.query(IssueRecords).filter(IssueRecords.id == issue_id).first()
+    if issue is None:
+        raise HTTPException(status_code=404, detail='Issue record not found')
+    
+    issue.fine_paid = True
+
+    db.commit()
+
+    return JSONResponse(status_code=200, content={'Fine Paid Successfully'})

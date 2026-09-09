@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import Annotated, Optional
 import models
-from models import Books, Users, Reservation
+from models import Books, Users, Reservation, IssueRecords
 from database import SessionLocal, engine
 from fastapi.responses import JSONResponse
 from router import admin, auth
@@ -82,3 +82,13 @@ def myreservation(user: user_dependency, db: db_dependency):
     
     reservations = db.query(Reservation).filter(Reservation.user_id == user.get('id')).all()
     return reservations
+
+@app.get('/issues/my')
+def my_issued_books(user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=401, detail='Failed Authentication')
+    
+    Issues = db.query(issubclass).filter(
+        IssueRecords.user_id == user.get('id'),
+        IssueRecords.status == 'issued').all()
+    return Issues
