@@ -9,7 +9,7 @@ from router import admin, auth
 from router.auth import get_current_user
 from fastapi.middleware.cors import CORSMiddleware
 
-# app = FastAPI()
+app = FastAPI()
 
 # origins = [
 #     "http://localhost:5173",
