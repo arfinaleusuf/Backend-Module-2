@@ -7,8 +7,27 @@ from database import SessionLocal, engine
 from fastapi.responses import JSONResponse
 from router import admin, auth
 from router.auth import get_current_user
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+# app = FastAPI()
+
+# origins = [
+#     "http://localhost:5173",
+#     "http://localhost:5174",
+#     "http://127.0.0.1:5173",
+#     "http://127.0.0.1:5174",
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+# ]
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 models.Base.metadata.create_all(bind=engine)
 app.include_router(auth.router)
@@ -88,7 +107,7 @@ def my_issued_books(user: user_dependency, db: db_dependency):
     if user is None:
         raise HTTPException(status_code=401, detail='Failed Authentication')
     
-    Issues = db.query(issubclass).filter(
+    Issues = db.query(IssueRecords).filter(
         IssueRecords.user_id == user.get('id'),
         IssueRecords.status == 'issued').all()
     return Issues
